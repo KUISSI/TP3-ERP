@@ -110,6 +110,21 @@ public class CustomerDAO {
     }
 }
 
+public int addCustomer(String firstName, String lastName, String phone, String email) {
+    // ...existing code...
+    if (rowsAffected > 0) {
+        try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+            if (generatedKeys.next()) {
+                int id = generatedKeys.getInt(1);
+                System.out.println("Client créé avec l'ID : " + id);
+                return id;
+            }
+        }
+    }
+    return -1;
+}
+
+
 public class ProductDAO {
     public List<Product> getAllProducts() {
         List<Product> products = new ArrayList<>();
