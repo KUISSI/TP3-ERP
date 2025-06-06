@@ -1,22 +1,34 @@
 import java.awt.*;
+import java.sql.SQLException;
 import javax.swing.*;
 
 public class AddCustomerForm extends JFrame {
     private JTextField txtFirstname, txtLastname, txtPhone, txtEmail;
     private JButton btnAdd;
-    private final CustomerDAO dao;
+    private CustomerDAO dao;
+    private CustomerViewer parentViewer;
 
-    public AddCustomerForm() {
-        // Initialisation du DAO
-        dao = new CustomerDAO();
-        
-        // Configuration de la fenêtre
-        setTitle("Ajouter un client");
-        setSize(400, 300);
-        setLayout(new GridLayout(5, 2, 10, 10)); // Ajout de marges
+    public AddCustomerForm(CustomerViewer viewer) {
+        this.parentViewer = viewer;
+
+        try {
+            dao = new CustomerDAO(); // Connexion DAO
+        } catch (SQLException e) {
+            showError("Erreur de connexion à la base de données : " + e.getMessage());
+            dispose();
+            return;
+        }
+
+        setTitle("Ajout d'un nouveau client");
+        setSize(400, 250);
+        setLayout(new GridLayout(5, 2, 10, 10));
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
-        // Création et ajout des composants
+        initUI();
+        setLocationRelativeTo(null);
+    }
+
+    private void initUI() {
         add(new JLabel("Prénom :"));
         txtFirstname = new JTextField();
         add(txtFirstname);
@@ -35,66 +47,51 @@ public class AddCustomerForm extends JFrame {
 
         btnAdd = new JButton("Ajouter");
         add(btnAdd);
-        add(new JLabel("")); // Espace vide pour équilibrer la grille
+        add(new JLabel("")); // Pour alignement
 
-        // Gestionnaire d'événement pour le bouton
-        btnAdd.addActionListener(e -> {
-            try {
-                String prenom = txtFirstname.getText().trim();
-                String nom = txtLastname.getText().trim();
-                String telephone = txtPhone.getText().trim();
-                String email = txtEmail.getText().trim();
-                
-                System.out.println("Tentative d'ajout: " + prenom + " " + nom);
-
-                if (prenom.isEmpty() || nom.isEmpty()) {
-                    JOptionPane.showMessageDialog(this, 
-                        "Prénom et nom sont obligatoires.",
-                        "Erreur de saisie",
-                        JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-
-                boolean succes = dao.addCustomer(prenom, nom, telephone, email);
-
-                if (succes) {
-                    JOptionPane.showMessageDialog(this, 
-                        "Client ajouté avec succès !",
-                        "Succès",
-                        JOptionPane.INFORMATION_MESSAGE);
-                    dispose();
-                } else {
-                    throw new Exception("Échec de l'ajout dans la base de données");
-                }
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                JOptionPane.showMessageDialog(this,
-                    "Erreur lors de l'ajout du client : " + ex.getMessage(),
-                    "Erreur",
-                    JOptionPane.ERROR_MESSAGE);
-            }
-        });
-
-        // Centrer la fenêtre
-        setLocationRelativeTo(null);
+        btnAdd.addActionListener(e -> handleAddCustomer());
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            try {
-                // Set system look and feel
-                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-                
-                // Create and show form
-                AddCustomerForm form = new AddCustomerForm();
-                form.setVisible(true);
-            } catch (Exception e) {
-                e.printStackTrace();
-                JOptionPane.showMessageDialog(null,
-                    "Error starting application: " + e.getMessage(),
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE);
+    private void handleAddCustomer() {
+        try {
+            String firstname = validateField(txtFirstname, "Prénom");
+            String lastname = validateField(txtLastname, "Nom");
+            String phone = txtPhone.getText().trim();
+            String email = txtEmail.getText().trim();
+
+            boolean inserted = dao.addCustomer(firstname, lastname, phone, email);
+            if (inserted) {
+                JOptionPane.showMessageDialog(this, "Client ajouté avec succès !");
+                clearFields();
+
+                if (parentViewer != null) {
+                    parentViewer.refreshCustomerList();
+                }
+                dispose();
+            } else {
+                showError("L'ajout du client a échoué.");
             }
-        });
+        } catch (IllegalArgumentException ex) {
+            showError("Saisie invalide : " + ex.getMessage());
+        } catch (SQLException ex) {
+            showError("Erreur BD : " + ex.getMessage());
+        }
+    }
+
+    private String validateField(JTextField field, String name) {
+        String val = field.getText().trim();
+        if (val.isEmpty()) throw new IllegalArgumentException(name + " est obligatoire.");
+        return val;
+    }
+
+    private void clearFields() {
+        txtFirstname.setText("");
+        txtLastname.setText("");
+        txtPhone.setText("");
+        txtEmail.setText("");
+    }
+
+    private void showError(String message) {
+        JOptionPane.showMessageDialog(this, message, "Erreur", JOptionPane.ERROR_MESSAGE);
     }
 }

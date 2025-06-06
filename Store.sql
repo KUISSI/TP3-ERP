@@ -30,8 +30,8 @@ CREATE FUNCTION public.new_customer(firstname_in character varying, lastname_in 
     IF rows_returned = 0 THEN
 	    INSERT INTO CUSTOMERS
 	      (
-	      FIRSTNAME,
-	      LASTNAME,
+	      firstname,
+	      lastname,
 	      EMAIL,
 	      PHONE,
 	      USERNAME,
