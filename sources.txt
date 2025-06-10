@@ -1,0 +1,15 @@
+src/com/erp/App.java
+src/com/erp/dao/CustomerDAO.java
+src/com/erp/dao/DBConnection.java
+src/com/erp/dao/InventoryDAO.java
+src/com/erp/dao/OrderDAO.java
+src/com/erp/dao/ProductDAO.java
+src/com/erp/database/DatabaseManager.java
+src/com/erp/gui/CustomerFrame.java
+src/com/erp/gui/HistoriqueCommandesFrame.java
+src/com/erp/gui/NewOrderFrame.java
+src/com/erp/gui/ProductFrame.java
+src/com/erp/model/Customer.java
+src/com/erp/model/Order.java
+src/com/erp/model/OrderLine.java
+src/com/erp/model/Product.java
